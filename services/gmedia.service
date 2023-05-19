@@ -5,10 +5,10 @@ After=network-online.target
 [Service]
 Type=notify
 ExecStart=/usr/bin/rclone mount \
-  --config=/home/<youruser>/.config/rclone/rclone.conf \
+  --config=/home/dorebell/.config/rclone/rclone.conf \
   --log-level=INFO \
-  --log-file=<rclone-log-dir>/rclone-mount.log \
-  --user-agent=<useragent> \
+  --log-file=/opt/rclone/logs/rclone-mount.log \
+  --user-agent=rclone_gnome \
   --umask=002 \
   --gid=1002 \
   --uid=1000 \
@@ -16,12 +16,12 @@ ExecStart=/usr/bin/rclone mount \
   --timeout=1h \
   --poll-interval=15s \
   --dir-cache-time=1000h \
-  --cache-dir=<cache-dir> \
+  --cache-dir=/opt/rclone/cache/secrets \
   --vfs-cache-mode=full \
-  --vfs-cache-max-size=<cache-size> \
-  --vfs-cache-max-age=<cache-time> \
-  gdrive-media-crypt: <cloud-mountpoint>
-ExecStop=/bin/fusermount -uz <cloud-mountpoint>
+  --vfs-cache-max-size=100G \
+  --vfs-cache-max-age=48h \
+  secrets: ~/secrets
+ExecStop=/bin/fusermount -uz ~/secrets
 Restart=on-abort
 RestartSec=5
 StartLimitInterval=60s

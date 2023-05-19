@@ -5,7 +5,7 @@ After=gmedia.service
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/mergerfs <local-mountpoint>:<cloud-mountpoint> <mergerfs-mountpoint> -o rw,use_ino,allow_other,func.getattr=newest,category.action=all,category.create=ff,cache.files=auto-full
+ExecStart=/usr/bin/mergerfs /mnt/secrets-local:/mnt/secrets /mnt/shared-secrets -o rw,use_ino,allow_other,func.getattr=newest,category.action=all,category.create=ff,cache.files=auto-full
 ExecStop=/bin/fusermount -uz <mergerfs-mountpoint>
 KillMode=none
 Restart=on-failure

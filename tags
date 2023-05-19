@@ -1,0 +1,37 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/dorebell/rclone-gmedia/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+After	services/gmedia-mergerfs.service	/^After=gmedia.service$/;"	k	section:Unit
+After	services/gmedia.service	/^After=network-online.target$/;"	k	section:Unit
+Description	services/gmedia-mergerfs.service	/^Description=Gmedia MergerFS Mount$/;"	k	section:Unit
+Description	services/gmedia.service	/^Description=Gmedia RClone Mount Service$/;"	k	section:Unit
+ExecStart	services/gmedia-mergerfs.service	/^ExecStart=\/usr\/bin\/mergerfs \/mnt\/secrets-local:\/mnt\/secrets \/mnt\/shared-secrets -o rw,u/;"	k	section:Service
+ExecStart	services/gmedia.service	/^ExecStart=\/usr\/bin\/rclone mount \\$/;"	k	section:Service
+ExecStop	services/gmedia-mergerfs.service	/^ExecStop=\/bin\/fusermount -uz <mergerfs-mountpoint>$/;"	k	section:Service
+ExecStop	services/gmedia.service	/^ExecStop=\/bin\/fusermount -uz ~\/secrets$/;"	k	section:Service
+Install	services/gmedia-mergerfs.service	/^[Install]$/;"	s
+Install	services/gmedia.service	/^[Install]$/;"	s
+KillMode	services/gmedia-mergerfs.service	/^KillMode=none$/;"	k	section:Service
+Requires	services/gmedia-mergerfs.service	/^Requires=gmedia.service$/;"	k	section:Unit
+Restart	services/gmedia-mergerfs.service	/^Restart=on-failure$/;"	k	section:Service
+Restart	services/gmedia.service	/^Restart=on-abort$/;"	k	section:Service
+RestartSec	services/gmedia.service	/^RestartSec=5$/;"	k	section:Service
+Service	services/gmedia-mergerfs.service	/^[Service]$/;"	s
+Service	services/gmedia.service	/^[Service]$/;"	s
+StartLimitBurst	services/gmedia.service	/^StartLimitBurst=3$/;"	k	section:Service
+StartLimitInterval	services/gmedia.service	/^StartLimitInterval=60s$/;"	k	section:Service
+Type	services/gmedia-mergerfs.service	/^Type=forking$/;"	k	section:Service
+Type	services/gmedia.service	/^Type=notify$/;"	k	section:Service
+Unit	services/gmedia-mergerfs.service	/^[Unit]$/;"	s
+Unit	services/gmedia.service	/^[Unit]$/;"	s
+WantedBy	services/gmedia-mergerfs.service	/^WantedBy=multi-user.target$/;"	k	section:Install
+WantedBy	services/gmedia.service	/^WantedBy=multi-user.target$/;"	k	section:Install
+rclone-gmedia	README.md	/^# rclone-gmedia$/;"	c

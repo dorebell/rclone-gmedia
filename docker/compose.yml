@@ -1,6 +1,27 @@
 version: "3"
 services:
   
+  vpn:
+    container_name: vpn
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=expressvpn
+      - OPENVPN_USER=6cjv1xvujyavsophf1vko1gc
+      - OPENVPN_PASSWORD=2gmvrtjghzghmt7r4f3yhfr3
+      - SERVER_COUNTRIES=USA
+      - SERVER_CITIES=Los Angeles
+      - UPDATER_PERIOD=24h
+    networks:
+      - mynetwork
+    ports: 
+      - 9092:9092
+      - 51417:51417
+      - 51417:51417/udp
+      - 51314:51314
+      - 51314:51314/udp
+    restart: "unless-stopped"
   sonarr:
     image: ghcr.io/linuxserver/sonarr:latest
     container_name: sonarr
@@ -11,11 +32,26 @@ services:
       - TZ=${TZ}
     volumes:
       - ${APPDATA}sonarr:/config
-      - ${GMEDIA_TV}
-      - ${DOWNLOAD}
+      - ${SECRET_TV}:/data/media/tv
+      - ${DOWNLOAD}:/data/downloads
     ports:
       - 8989:8989
-      
+  
+  sonarr_non4k:
+    image: ghcr.io/linuxserver/sonarr:latest
+    container_name: sonarr_non4k
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}      
+      - TZ=${TZ}
+    volumes:
+      - ${APPDATA}sonarr:/config
+      - ${SECRET_TV}:/data/media/tv
+      - ${DOWNLOAD}:/data/downloads
+    ports:
+      - 8988:8988
+
   radarr:
     image: ghcr.io/linuxserver/radarr:nightly
     container_name: radarr
@@ -26,11 +62,26 @@ services:
       - TZ=${TZ}
     volumes:
       - ${APPDATA}radarr:/config
-      - ${GMEDIA_MOVIE}
-      - ${DOWNLOAD}
+      - ${SECRET_MOVIE}:/data/media/movies
+      - ${DOWNLOAD}:/data/download
     ports:
       - 7878:7878
-      
+  
+  radarr_non4k:
+    image: ghcr.io/linuxserver/radarr:nightly
+    container_name: radarr_non4k
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${APPDATA}radarr:/config
+      - ${SECRET_MOVIE}:/data/media/movies
+      - ${DOWNLOAD}:/data/download
+    ports:
+      - 7877:7877
+  
   sabnzbd:
     image: ghcr.io/linuxserver/sabnzbd
     container_name: sabnzbd
@@ -41,28 +92,28 @@ services:
       - TZ=${TZ}
     volumes:
       - ${APPDATA}sabnzdb:/config
-      - ${DOWNLOAD}
+      - ${DOWNLOAD}:/data/download
     ports:
       - 8080:8080
       
   transmission:
     image: ghcr.io/linuxserver/transmission
     container_name: transmission
+    network_mode: service:vpn
     restart: unless-stopped    
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - USER={TRANSUSER}
-      - PASS={TRANSPASS}
+      - USER=tesseract.ion
+      - PASS=zerogravitas
+    storage_opt:
+      size: '205G'
     volumes:
       - ${APPDATA}transmission:/config
-      - ${DOWNLOAD}
-      - ${WATCH}
-    ports:
-      - 9091:9091
-      - 51413:51413
-      - 51413:51413/udp
+      - ${DOWNLOAD}:/data/download
+      - ${WATCH}:/data/watch
+
 
       
   overseerr:
@@ -106,16 +157,31 @@ services:
       - 8181:8181
       
   plex:
-    image: ghcr.io/linuxserver/plex
+    image: ghcr.io/linuxserver/plex:latest
     container_name: plex
     restart: unless-stopped
-    network_mode: host
+    network_mode: bridge
+    devices:
+      - /dev/dri:/dev/dri
+      #runtime: nvidia
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
+      - VERSION=docker
+      - NVIDIA_VISIBLE_DEVICES=all
+    ports:
+      - "32400:32400" # (for access to the Plex Media Server) [required]
+      - "1900:1900/udp" # (access to Plex DLNA server) #"5353:5353/udp" #(older Bonjour/Avahi network discovery)
+      - "3005:3005" # (for controlling Plex Home Theater via Plex Companion)
+      - "8324:8324" # (for controlling Plex for Roku via Plex Companion)
+      - "32410:32410/udp" # (for current GDM network discovery)
+      - "32412:32412/udp" # (for current GDM network discovery)
+      - "32413:32413/udp" # (for current GDM network discovery)
+      - "32414:32414/udp" # (for current GDM network discovery)
+      - "32469:32469" # (for access to the Plex DLNA Server)
     volumes:
       - ${APPDATA}plex:/config
-      - ${GMEDIA}
+      - ${SECRET}:/data/media
 
   watchtower:
       image: containrrr/watchtower
@@ -134,6 +200,77 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+
+  bazarr:
+      image: lscr.io/linuxserver/bazarr:latest
+      container_name: bazarr
+      environment:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - TZ=${TZ}
+      volumes:
+        - ${APPDATA}bazarr:/config
+        - ${SECRET_MOVIE}:/data/movies
+        - ${SECRET_TV}:/data/tv
+        - ${DOWNLOAD}:/data/download
+      ports:
+        - 6767:6767
+      restart: unless-stopped
+
+  jellyfin:
+    image: linuxserver/jellyfin:10.8.8
+    container_name: jellyfin
+      #runtime: nvidia
+    networks:
+      - mynetwork
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${APPDATA}jellyfin:/config
+      - ${SECRET}:/data/media
+  # devices:
+   #  - /dev/videoN:/dev/videoN # Mount GPU device 
+    ports:
+      - 8096:8096
+      - 7359:7359/udp
+      - 8920:8920
+    restart: unless-stopped
+
+  prowlarr:
+    image: cr.hotio.dev/hotio/prowlarr
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - TZ=${TZ}
+    ports:
+      - 9696:9696
+    volumes:
+      - ${APPDATA}prowlarr:/config
+      - ${DOWNLOAD}:/data/download
+
+  whisparr:
+    image: cr.hotio.dev/hotio/whisparr
+    container_name: whisparr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - TZ=${TZ}
+    ports:
+      - 6969:6969
+    volumes:
+      - ${APPDATA}whisparr:/config
+      - ${DOWNLOAD}:/data/download
+      - ${SECRET_PORN}:/data/media/porn
+
+networks:
+  mynetwork:
+    external: true
+
 
 volumes:
   portainer_data:
